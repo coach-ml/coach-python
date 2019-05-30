@@ -8,6 +8,13 @@ import numpy as np
 
 class Coach:
 
+    def __init__(apiKey):
+        id = '...'
+        base = f'https://2hhn1oxz51.execute-api.us-east-1.amazonaws.com/prod/${id}'
+
+    def cache(name, version):
+        base = f"https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/sagemaker-east/model-bin?object=trained/${name}/${version}/test.txt"
+
     def load_graph(model_file):
         graph = tf.Graph()
         graph_def = tf.GraphDef()

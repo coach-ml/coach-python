@@ -1,0 +1,42 @@
+Metadata-Version: 2.1
+Name: lkuich
+Version: 0.0.1
+Summary: Python client for coach
+Home-page: https://github.com/lkuich/coach-python
+Author: Loren Kuich
+Author-email: loren@lkuich.com
+License: UNKNOWN
+Description: # Coach Python SDK
+        
+        ## Initialization
+        
+        ```python
+        coach = new CoachClient(apiKey)
+        ```
+        
+        ## Usage
+        
+        ### byte[] get(model)
+        
+        This will download the model and store it as a byte array. This can be written to disk or kept in memory for future predictions.
+        
+        ```python
+        coach.get('flowers')
+        ```
+        
+        ### string[] predict(model, image)
+        
+        Accepts a model and image and returns a map of results.
+        
+        ```python
+        coach.predict(byte[], 'rose.jpg')
+        ```
+        
+        ```python
+        coach.predict(byte[], byte[])
+        ```
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
