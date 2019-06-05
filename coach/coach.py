@@ -73,10 +73,10 @@ class Coach:
         url = f'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/{self.bucket}/model-bin?object=trained/{name}/{version}/model/{file}'
         print(url)
         # Write bin to path
-        response = requests.get(url, headers={"X-Api-Key": self.apiKey, "Accept": "", "Content-Type": "application/octet-stream"}).text
+        response = requests.get(url, headers={"X-Api-Key": self.apiKey, "Accept": "", "Content-Type": "application/octet-stream"}).content
 
         model_path = f'{path}/{file}'
-        model = open(model_path, 'w')
+        model = open(model_path, 'wb')
         model.write(response)
         model.close()
 
