@@ -59,24 +59,33 @@ class CoachModel:
 
 class Coach:
 
-    def __init__(apiKey):
-        id = apiKey[0:5]
-        url = f'https://2hhn1oxz51.execute-api.us-east-1.amazonaws.com/prod/{id}'
-        response = requests.get(url, headers={"X-Api-Key": apiKey}).json()
+    def __init__(self, apiKey):
+        self.apiKey = apiKey
+        self.id = apiKey[0:5]
+        url = f'https://2hhn1oxz51.execute-api.us-east-1.amazonaws.com/prod/{self.id}'
+        response = requests.get(url, headers={"X-Api-Key": self.apiKey}).json()
         print(response)
-        self.bucket = '' # Use bucket from response
+        self.bucket = 'sagemaker-east' # Use bucket from response
 
     # Downloads model
-    def cache_model(name, version, path='.'):
-        base = f'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/{self.bucket}/model-bin?object=trained/{name}/{version}/frozen.pb'
+    def cache_model(self, name, version, path='.'):
+        file = 'frozen.pb'
+        url = f'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/{self.bucket}/model-bin?object=trained/{name}/{version}/model/{file}'
+        print(url)
         # Write bin to path
+        response = requests.get(url, headers={"X-Api-Key": self.apiKey, "Accept": "", "Content-Type": "application/octet-stream"}).text
+
+        model_path = f'{path}/{file}'
+        model = open(model_path, 'w')
+        model.write(response)
+        model.close()
 
     # Downloads and loads model into memory
-    def get_model_remote(name, version, path='.'):
+    def get_model_remote(self, name, version, path='.'):
         cache_model(name, version, path)
         return get_model(path)
 
-    def get_model(path):
+    def get_model(self, path):
         graph = tf.Graph()
         graph_def = tf.GraphDef()
         with open(path, "rb") as f:
@@ -89,7 +98,7 @@ class Coach:
 
         return CoachModel(graph, [])
 
-    def load_labels(label_file):
+    def load_labels(self, label_file):
         label = []
         proto_as_ascii_lines = tf.gfile.GFile(label_file).readlines()
         for l in proto_as_ascii_lines:

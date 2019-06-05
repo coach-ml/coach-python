@@ -1,7 +1,5 @@
-import coach
+from coach import Coach
 
 if __name__ == "__main__":
-    coach = Coach('api-key')
-    results = coach.predict('model', 'rose.jpg')
-    
-    print(results)
+    coach = Coach('B1dp8OKfOk2RskZ9EkJai3rIAkENZQky2eINkWhi')
+    coach.cache_model('flowers', '11')
