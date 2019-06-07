@@ -69,16 +69,35 @@ class Coach:
 
     # Downloads model
     def cache_model(self, name, version, path='.'):
-        file = 'frozen.pb'
-        url = f'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/{self.bucket}/model-bin?object=trained/{name}/{version}/model/{file}'
-        print(url)
-        # Write bin to path
-        response = requests.get(url, headers={"X-Api-Key": self.apiKey, "Accept": "", "Content-Type": "application/octet-stream"}).content
+        # Create dir to store model files
+        try:
+            # Create target Directory
+            os.mkdir(name)
+        except FileExistsError:
+            pass
 
-        model_path = f'{path}/{file}'
+        url = f'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/{self.bucket}/model-bin?object=trained/{name}/{version}/model'
+
+        m_file = 'frozen.pb'
+        m_url = f'{url}/{m_file}'
+        # Write bin to path
+        m_response = requests.get(m_url, headers={"X-Api-Key": self.apiKey, "Accept": "", "Content-Type": "application/octet-stream"}).content
+
+        model_path = f'{path}/${name}/{m_file}'
         model = open(model_path, 'wb')
-        model.write(response)
+        model.write(m_response)
         model.close()
+
+        # Write label to path
+        l_file = 'labels.txt'
+        l_url = f'{url}/{l_file}'
+        # Write label to path
+        l_response = requests.get(l_url, headers={"X-Api-Key": self.apiKey}).text
+
+        l_path = f'{path}/${name}/{l_file}'
+        label = open(l_path, 'w')
+        label.write(l_response)
+        label.close()
 
     # Downloads and loads model into memory
     def get_model_remote(self, name, version, path='.'):
