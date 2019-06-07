@@ -8,11 +8,13 @@ import numpy as np
 import requests
 
 class CoachModel:
-    def __init__(graph, labels):
+    def __init__(self, graph, labels):
         self.graph = graph
         self.lables = labels
 
-    def __read_tensor_from_image_file(file_name, input_height=224, input_width=224, input_mean=0, input_std=255):
+        print(labels)
+
+    def __read_tensor_from_image_file(self, file_name, input_height=224, input_width=224, input_mean=0, input_std=255):
         input_name = "file_reader"
         output_name = "normalized"
         file_reader = tf.read_file(file_name, input_name)
@@ -36,7 +38,7 @@ class CoachModel:
 
         return result
 
-    def predict(image):
+    def predict(self, image):
         output_name = "import/softmax_input/Softmax"
         input_name = "import/lambda_input_input"
 
@@ -62,10 +64,12 @@ class Coach:
     def __init__(self, apiKey):
         self.apiKey = apiKey
         self.id = apiKey[0:5]
+        self.bucket = 'sagemaker-east' # Use bucket from response
+
+    def get_profile(self):
         url = f'https://2hhn1oxz51.execute-api.us-east-1.amazonaws.com/prod/{self.id}'
         response = requests.get(url, headers={"X-Api-Key": self.apiKey}).json()
-        print(response)
-        self.bucket = 'sagemaker-east' # Use bucket from response
+        return response
 
     # Downloads model
     def cache_model(self, name, version, path='.'):
@@ -83,18 +87,18 @@ class Coach:
         # Write bin to path
         m_response = requests.get(m_url, headers={"X-Api-Key": self.apiKey, "Accept": "", "Content-Type": "application/octet-stream"}).content
 
-        model_path = f'{path}/${name}/{m_file}'
+        model_path = f'{path}/{name}/{m_file}'
         model = open(model_path, 'wb')
         model.write(m_response)
         model.close()
 
         # Write label to path
-        l_file = 'labels.txt'
+        l_file = 'labels.csv'
         l_url = f'{url}/{l_file}'
         # Write label to path
         l_response = requests.get(l_url, headers={"X-Api-Key": self.apiKey}).text
 
-        l_path = f'{path}/${name}/{l_file}'
+        l_path = f'{path}/{name}/{l_file}'
         label = open(l_path, 'w')
         label.write(l_response)
         label.close()
@@ -107,15 +111,16 @@ class Coach:
     def get_model(self, path):
         graph = tf.Graph()
         graph_def = tf.GraphDef()
-        with open(path, "rb") as f:
+        with open(f'{path}/frozen.pb', "rb") as f:
             #text_format.Merge(f.read(), graph_def)
             graph_def.ParseFromString(f.read())
         with graph.as_default():
             tf.import_graph_def(graph_def)
 
         # Load lables
+        labels = self.load_labels(f'{path}/labels.csv')
 
-        return CoachModel(graph, [])
+        return CoachModel(graph, labels)
 
     def load_labels(self, label_file):
         label = []
