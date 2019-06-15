@@ -62,11 +62,14 @@ class CoachModel:
 
 class Coach:
 
+    def __init__(self, is_debug=False):
+        self.is_debug = is_debug
+
     def login(self, apiKey):
         self.apiKey = apiKey
         self.id = apiKey[0:5]
-        profile = self.__get_profile()
-        self.bucket = profile['bucket']
+        self.profile = self.__get_profile()
+        self.bucket = self.profile['bucket']
         return self
 
     def __is_authenticated(self):
@@ -78,7 +81,7 @@ class Coach:
         return response
 
     # Downloads model
-    def cache_model(self, name, version, path='.'):
+    def cache_model(self, name, path='.'):
         if not self.__is_authenticated():
             print('You must login to cache a model')
             return
@@ -90,25 +93,26 @@ class Coach:
         except FileExistsError:
             pass
 
+        profile_version = self.profile['models'][name]['version']
         profile_path = f'{path}/{name}/manifest.json'
         if os.path.isfile(profile_path):
             _p = open(profile_path, 'r')
-            profile = json.loads(_p.read())
+            local_profile = json.loads(_p.read())
             _p.close()
 
-            if version == profile[name]['version']:
-                print('Version match, skipping download')
+            if local_profile[name]['version'] == profile_version:
+                if self.is_debug:
+                    print('Version match, skipping download')
                 return
-        else:
-            profile = self.__get_profile()
-            p_to_write = profile['models'][name]
-            p_to_write = { f'{name}': p_to_write }
+            else:
+                p_to_write = self.profile['models'][name]
+                p_to_write = { f'{name}': p_to_write }
 
-            _p = open(profile_path, 'w')
-            _p.write(json.dumps(p_to_write))
-            _p.close()
+                _p = open(profile_path, 'w')
+                _p.write(json.dumps(p_to_write))
+                _p.close()
 
-        url = f'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/{self.bucket}/model-bin?object=trained/{name}/{version}/model'
+        url = f'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/{self.bucket}/model-bin?object=trained/{name}/{profile_version}/model'
 
         m_file = 'frozen.pb'
         m_url = f'{url}/{m_file}'
@@ -119,17 +123,6 @@ class Coach:
         model = open(model_path, 'wb')
         model.write(m_response)
         model.close()
-
-        # Write label to path
-        l_file = 'labels.csv'
-        l_url = f'{url}/{l_file}'
-        # Write label to path
-        l_response = requests.get(l_url, headers={"X-Api-Key": self.apiKey}).text
-
-        l_path = f'{path}/{name}/{l_file}'
-        label = open(l_path, 'w')
-        label.write(l_response)
-        label.close()
 
     # Downloads and loads model into memory
     def get_model_remote(self, name, version, path='.'):
@@ -150,13 +143,14 @@ class Coach:
             tf.import_graph_def(graph_def)
 
         # Load lables
-        labels = self.__load_labels(f'{path}/labels.csv')
+        labels = self.__load_labels( f'{path}/manifest.json')
 
         return CoachModel(graph, labels)
 
-    def __load_labels(self, label_file):
-        label = []
-        proto_as_ascii_lines = tf.gfile.GFile(label_file).readlines()
-        for l in proto_as_ascii_lines:
-            label.append(l.rstrip())
-        return label
+    def __load_labels(self, manifest):
+        m = open(manifest, 'r')
+        mnf = json.loads(m.read())
+        key = list(mnf.keys())[0]        
+        mnf = mnf[key]
+
+        return mnf['labels']
