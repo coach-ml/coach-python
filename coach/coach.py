@@ -6,13 +6,12 @@ import os
 import csv
 import numpy as np
 import requests
+import json
 
 class CoachModel:
     def __init__(self, graph, labels):
         self.graph = graph
-        self.lables = labels
-
-        print(labels)
+        self.labels = labels
 
     def __read_tensor_from_image_file(self, file_name, input_height=224, input_width=224, input_mean=0, input_std=255):
         input_name = "file_reader"
@@ -45,7 +44,7 @@ class CoachModel:
         input_operation = self.graph.get_operation_by_name(input_name)
         output_operation = self.graph.get_operation_by_name(output_name)
 
-        t = __read_tensor_from_image_file(image)
+        t = self.__read_tensor_from_image_file(image)
         
         with tf.Session(graph=self.graph) as sess:
             sess.run(tf.global_variables_initializer())
@@ -54,31 +53,60 @@ class CoachModel:
             })
         results = np.squeeze(results)
 
-        # TODO: Return a JSON object
+        js = {};
         top_k = results.argsort()[-5:][::-1]
         for i in top_k:
-            print(labels[i], results[i])
+            js[self.labels[i]] = results[i]
+
+        return js
 
 class Coach:
 
-    def __init__(self, apiKey):
+    def login(self, apiKey):
         self.apiKey = apiKey
         self.id = apiKey[0:5]
-        self.bucket = 'sagemaker-east' # Use bucket from response
+        profile = self.__get_profile()
+        self.bucket = profile['bucket']
+        return self
 
-    def get_profile(self):
+    def __is_authenticated(self):
+        return self.apiKey != None and self.id != None and self.bucket != None
+
+    def __get_profile(self):
         url = f'https://2hhn1oxz51.execute-api.us-east-1.amazonaws.com/prod/{self.id}'
         response = requests.get(url, headers={"X-Api-Key": self.apiKey}).json()
         return response
 
     # Downloads model
     def cache_model(self, name, version, path='.'):
+        if not self.__is_authenticated():
+            print('You must login to cache a model')
+            return
+
         # Create dir to store model files
         try:
             # Create target Directory
             os.mkdir(name)
         except FileExistsError:
             pass
+
+        profile_path = f'{path}/{name}/manifest.json'
+        if os.path.isfile(profile_path):
+            _p = open(profile_path, 'r')
+            profile = json.loads(_p.read())
+            _p.close()
+
+            if version == profile[name]['version']:
+                print('Version match, skipping download')
+                return
+        else:
+            profile = self.__get_profile()
+            p_to_write = profile['models'][name]
+            p_to_write = { f'{name}': p_to_write }
+
+            _p = open(profile_path, 'w')
+            _p.write(json.dumps(p_to_write))
+            _p.close()
 
         url = f'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/{self.bucket}/model-bin?object=trained/{name}/{version}/model'
 
@@ -105,7 +133,11 @@ class Coach:
 
     # Downloads and loads model into memory
     def get_model_remote(self, name, version, path='.'):
-        cache_model(name, version, path)
+        if not self.__is_authenticated():
+            print('You must login to cache a model')
+            return
+
+        self.cache_model(name, version, path)
         return get_model(path)
 
     def get_model(self, path):
@@ -118,11 +150,11 @@ class Coach:
             tf.import_graph_def(graph_def)
 
         # Load lables
-        labels = self.load_labels(f'{path}/labels.csv')
+        labels = self.__load_labels(f'{path}/labels.csv')
 
         return CoachModel(graph, labels)
 
-    def load_labels(self, label_file):
+    def __load_labels(self, label_file):
         label = []
         proto_as_ascii_lines = tf.gfile.GFile(label_file).readlines()
         for l in proto_as_ascii_lines:
