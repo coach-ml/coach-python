@@ -1,5 +1,8 @@
 README.md
 setup.py
+coach/__init__.py
+coach/coach.py
+coach/main.py
 lkuich.egg-info/PKG-INFO
 lkuich.egg-info/SOURCES.txt
 lkuich.egg-info/dependency_links.txt

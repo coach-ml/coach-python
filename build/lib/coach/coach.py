@@ -9,13 +9,9 @@ import requests
 import json
 
 class CoachModel:
-    def __init__(self, graph, labels, base_module):
+    def __init__(self, graph, labels):
         self.graph = graph
         self.labels = labels
-
-        # handle expected module sizes
-        if (base_module == ""):
-            pass
 
     def __read_tensor_from_image_file(self, file_name, input_height=224, input_width=224, input_mean=0, input_std=255):
         input_name = "file_reader"
@@ -146,15 +142,15 @@ class Coach:
         with graph.as_default():
             tf.import_graph_def(graph_def)
 
-        manifest_path = f'{path}/manifest.json'
-        m = open(manifest_path, 'r')
-        manifest = json.loads(m.read())
-        key = list(manifest.keys())[0]
-        manifest = manifest[key]
-        m.close()
-
         # Load lables
-        labels = manifest['labels']
-        base_module = manifest['module']
+        labels = self.__load_labels( f'{path}/manifest.json')
 
-        return CoachModel(graph, labels, base_module)
+        return CoachModel(graph, labels)
+
+    def __load_labels(self, manifest):
+        m = open(manifest, 'r')
+        mnf = json.loads(m.read())
+        key = list(mnf.keys())[0]        
+        mnf = mnf[key]
+
+        return mnf['labels']
