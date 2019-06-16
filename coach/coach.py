@@ -17,10 +17,17 @@ class CoachModel:
         if (base_module == ""):
             pass
 
+    def __read_tensor_from_bytes(self, imageBytes, input_height=224, input_width=224, input_mean=0, input_std=255):
+        input_name = "file_reader"
+        output_name = "normalized"
+        tensor = tf.decode_raw(imageBytes, tf.float32, name=input_name)
+
     def __read_tensor_from_image_file(self, file_name, input_height=224, input_width=224, input_mean=0, input_std=255):
         input_name = "file_reader"
         output_name = "normalized"
-        file_reader = tf.read_file(file_name, input_name)
+        tensor = tf.read_file(file_name, input_name)
+        
+        '''
         if file_name.endswith(".png"):
             image_reader = tf.image.decode_png(
                 file_reader, channels=3, name="png_reader")
@@ -32,8 +39,12 @@ class CoachModel:
         else:
             image_reader = tf.image.decode_jpeg(
                 file_reader, channels=3, name="jpeg_reader")
-        float_caster = tf.cast(image_reader, tf.float32)
-        dims_expander = tf.expand_dims(float_caster, 0)
+        '''
+
+        image_reader = tf.decode_image(tensor, channels=3, dtype=tf.float32, name="image_reader")
+
+        #float_caster = tf.cast(image_reader, tf.float32)
+        dims_expander = tf.expand_dims(image_reader, 0)
         resized = tf.image.resize_bilinear(dims_expander, [input_height, input_width])
         normalized = tf.divide(tf.subtract(resized, [input_mean]), [input_std])
         sess = tf.Session()
@@ -65,7 +76,6 @@ class CoachModel:
         return js
 
 class Coach:
-
     def __init__(self, is_debug=False):
         self.is_debug = is_debug
 
@@ -127,15 +137,6 @@ class Coach:
         model = open(model_path, 'wb')
         model.write(m_response)
         model.close()
-
-    # Downloads and loads model into memory
-    def get_model_remote(self, name, version, path='.'):
-        if not self.__is_authenticated():
-            print('You must login to cache a model')
-            return
-
-        self.cache_model(name, version, path)
-        return get_model(path)
 
     def get_model(self, path):
         graph = tf.Graph()

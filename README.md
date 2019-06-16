@@ -1,29 +1,58 @@
 # Coach Python SDK
 
-## Initialization
+Coach is an end-to-end Image Recognition platform, we provide the tooling to do effective data collection, training, and on-device parsing of Image Recognition models.
 
-```python
-coach = new CoachClient(apiKey)
+The Python 3 SDK interacts with the Coach web API in order to download and parse your trained Coach models.
+
+## Installing
+Install and update using [pip](https://pip.pypa.io/en/stable/quickstart/):
+```bash
+pip install -U coach
 ```
 
 ## Usage
 
-### byte[] get(model)
-
-This will download the model and store it as a byte array. This can be written to disk or kept in memory for future predictions.
+Coach can be initialized 2 different ways. If you are only using the offline model parsing capabilities and already have a model package on disk, you can initialize like so:
 
 ```python
-coach.get('flowers')
+coach = Coach()
+
+# We already had the `flowers` model on disk, no need to authenticate:
+result = coach.get_model('flowers').predict('rose.jpg')
 ```
 
-### string[] predict(model, image)
-
-Accepts a model and image and returns a map of results.
-
+However, in order to download your trained models, you must log in with your API key:
 ```python
-coach.predict(byte[], 'rose.jpg')
+coach = Coach().login('myapikey')
+
+# Now that we're authenticated, we can cache our models for future use:
+coach.cache_model('flowers')
+
+# Evaluate with our cached model:
+result = coach.get_model('flowers').predict('rose.jpg')
 ```
 
-```python
-coach.predict(byte[], byte[])
-```
+## API Breakdown
+
+### Coach
+`__init__(self, is_debug=False)`  
+Optional `is_debug`, if `True`, additional logs will be displayed
+
+`login(self, apiKey) -> Coach`  
+Authenticates with Coach service and allows for model caching. Accepts API Key as its only parameter. Returns its own instance.
+
+`cache_model(self, name, path='.')`  
+Downloads model from Coach service to disk. Specify the name of the model, and the path to store it. This will create a new directory in the specified path and store any model related documents there.
+
+`get_model(self, path) -> CoachModel`
+Loads model into memory. Specify the path of the cached models directory. Returns a `CoachModel`
+
+### CoachModel
+`__init__(self, graph, labels, base_module)`  
+Initializes a new instance of `CoachModel`, accepts a loaded `tf.Graph()`, array of `labels`, and the `base_module` the graph was trained off of.
+
+`predict(self, image) -> dict`  
+Specify the directory of an image file. Parses the specified image into memory and runs it through the loaded model. Returns a dict of its predictions in order of confidence.
+
+`predict_b(self, imageBytes) -> dict`  
+Specify the image file as a byte array. Parses the specified image into memory and runs it through the loaded model. Returns a dict of its predictions in order of confidence.
