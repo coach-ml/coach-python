@@ -13,44 +13,29 @@ class CoachModel:
         self.graph = graph
         self.labels = labels
 
+        self.input_height = 224
+        self.input_width = 224
+        self.input_mean = 0
+        self.input_std = 255
+
         # handle expected module sizes
         if (base_module == ""):
             pass
 
-    def __read_tensor_from_bytes(self, imageBytes, input_height=224, input_width=224, input_mean=0, input_std=255):
-        input_name = "file_reader"
-        output_name = "normalized"
-        tensor = tf.decode_raw(imageBytes, tf.float32, name=input_name)
+    def __read_tensor_from_bytes(self, imageBytes):
+        image_reader = tf.image.decode_image(imageBytes, channels=3, dtype=tf.float32, name="image_reader")
 
-    def __read_tensor_from_image_file(self, file_name, input_height=224, input_width=224, input_mean=0, input_std=255):
-        input_name = "file_reader"
-        output_name = "normalized"
-        tensor = tf.read_file(file_name, input_name)
-        
-        '''
-        if file_name.endswith(".png"):
-            image_reader = tf.image.decode_png(
-                file_reader, channels=3, name="png_reader")
-        elif file_name.endswith(".gif"):
-            image_reader = tf.squeeze(
-                tf.image.decode_gif(file_reader, name="gif_reader"))
-        elif file_name.endswith(".bmp"):
-            image_reader = tf.image.decode_bmp(file_reader, name="bmp_reader")
-        else:
-            image_reader = tf.image.decode_jpeg(
-                file_reader, channels=3, name="jpeg_reader")
-        '''
-
-        image_reader = tf.decode_image(tensor, channels=3, dtype=tf.float32, name="image_reader")
-
-        #float_caster = tf.cast(image_reader, tf.float32)
         dims_expander = tf.expand_dims(image_reader, 0)
-        resized = tf.image.resize_bilinear(dims_expander, [input_height, input_width])
-        normalized = tf.divide(tf.subtract(resized, [input_mean]), [input_std])
+        resized = tf.image.resize_bilinear(dims_expander, [self.input_height, self.input_width])
+        normalized = tf.divide(tf.subtract(resized, [self.input_mean]), [self.input_std])
         sess = tf.Session()
         result = sess.run(normalized)
 
         return result
+
+    def __read_tensor_from_image_file(self, file_name):
+        tensor = tf.read_file(file_name, name="file_reader")
+        return self.__read_tensor_from_bytes(tensor)        
 
     def predict(self, image):
         output_name = "import/softmax_input/Softmax"
@@ -59,7 +44,10 @@ class CoachModel:
         input_operation = self.graph.get_operation_by_name(input_name)
         output_operation = self.graph.get_operation_by_name(output_name)
 
-        t = self.__read_tensor_from_image_file(image)
+        if type(image) is str:
+            t = self.__read_tensor_from_image_file(image)
+        else:
+            t = self.__read_tensor_from_bytes(image)
         
         with tf.Session(graph=self.graph) as sess:
             sess.run(tf.global_variables_initializer())
@@ -118,13 +106,13 @@ class Coach:
                 if self.is_debug:
                     print('Version match, skipping download')
                 return
-            else:
-                p_to_write = self.profile['models'][name]
-                p_to_write = { f'{name}': p_to_write }
+        else:
+            p_to_write = self.profile['models'][name]
+            p_to_write = { f'{name}': p_to_write }
 
-                _p = open(profile_path, 'w')
-                _p.write(json.dumps(p_to_write))
-                _p.close()
+            _p = open(profile_path, 'w')
+            _p.write(json.dumps(p_to_write))
+            _p.close()
 
         url = f'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/{self.bucket}/model-bin?object=trained/{name}/{profile_version}/model'
 
