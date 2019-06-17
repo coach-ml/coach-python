@@ -23,9 +23,10 @@ class CoachModel:
             pass
 
     def __read_tensor_from_bytes(self, imageBytes):
-        image_reader = tf.image.decode_image(imageBytes, channels=3, dtype=tf.float32, name="image_reader")
+        image_reader = tf.image.decode_image(imageBytes, channels=3)
+        float_caster = tf.cast(image_reader, tf.float32)
 
-        dims_expander = tf.expand_dims(image_reader, 0)
+        dims_expander = tf.expand_dims(float_caster, 0)
         resized = tf.image.resize_bilinear(dims_expander, [self.input_height, self.input_width])
         normalized = tf.divide(tf.subtract(resized, [self.input_mean]), [self.input_std])
         sess = tf.Session()
