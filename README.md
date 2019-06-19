@@ -21,7 +21,7 @@ coach = Coach()
 result = coach.get_model('flowers').predict('rose.jpg')
 ```
 
-However, in order to download your trained models, you must log in with your API key:
+However, in order to download your trained models, you must authenticate with your API key:
 ```python
 coach = Coach().login('myapikey')
 
@@ -52,7 +52,4 @@ Loads model into memory. Specify the path of the cached models directory. Return
 Initializes a new instance of `CoachModel`, accepts a loaded `tf.Graph()`, array of `labels`, and the `base_module` the graph was trained off of.
 
 `predict(self, image) -> dict`  
-Specify the directory of an image file. Parses the specified image into memory and runs it through the loaded model. Returns a dict of its predictions in order of confidence.
-
-`predict_b(self, imageBytes) -> dict`  
-Specify the image file as a byte array. Parses the specified image into memory and runs it through the loaded model. Returns a dict of its predictions in order of confidence.
+Specify the directory of an image file or the image as a byte array. Parses the specified image into memory and runs it through the loaded model. Returns a dict of its predictions in order of confidence.
