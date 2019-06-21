@@ -79,7 +79,7 @@ class Coach:
         return self.apiKey != None and self.id != None and self.bucket != None
 
     def __get_profile(self):
-        url = f'https://2hhn1oxz51.execute-api.us-east-1.amazonaws.com/prod/{self.id}'
+        url = 'https://2hhn1oxz51.execute-api.us-east-1.amazonaws.com/prod/' + self.id
         response = requests.get(url, headers={"X-Api-Key": self.apiKey}).json()
         return response
 
@@ -97,7 +97,7 @@ class Coach:
             pass
 
         profile_version = self.profile['models'][name]['version']
-        profile_path = f'{path}/{name}/manifest.json'
+        profile_path = path + '/' + name + '/manifest.json'
         if os.path.isfile(profile_path):
             _p = open(profile_path, 'r')
             local_profile = json.loads(_p.read())
@@ -109,20 +109,20 @@ class Coach:
                 return
         else:
             p_to_write = self.profile['models'][name]
-            p_to_write = { f'{name}': p_to_write }
+            p_to_write = { name: p_to_write }
 
             _p = open(profile_path, 'w')
             _p.write(json.dumps(p_to_write))
             _p.close()
 
-        url = f'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/{self.bucket}/model-bin?object=trained/{name}/{profile_version}/model'
+        url = 'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/' + self.bucket + '/model-bin?object=trained/' + name + '/' + profile_version + '/model'
 
         m_file = 'frozen.pb'
-        m_url = f'{url}/{m_file}'
+        m_url = url + '/' + m_file
         # Write bin to path
         m_response = requests.get(m_url, headers={"X-Api-Key": self.apiKey, "Accept": "", "Content-Type": "application/octet-stream"}).content
 
-        model_path = f'{path}/{name}/{m_file}'
+        model_path = path + '/' + name + '/' + m_file
         model = open(model_path, 'wb')
         model.write(m_response)
         model.close()
@@ -130,13 +130,13 @@ class Coach:
     def get_model(self, path):
         graph = tf.Graph()
         graph_def = tf.GraphDef()
-        with open(f'{path}/frozen.pb', "rb") as f:
+        with open(path + '/frozen.pb', "rb") as f:
             #text_format.Merge(f.read(), graph_def)
             graph_def.ParseFromString(f.read())
         with graph.as_default():
             tf.import_graph_def(graph_def)
 
-        manifest_path = f'{path}/manifest.json'
+        manifest_path = path + '/manifest.json'
         m = open(manifest_path, 'r')
         manifest = json.loads(m.read())
         key = list(manifest.keys())[0]
