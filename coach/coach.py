@@ -96,23 +96,23 @@ class Coach:
         except FileExistsError:
             pass
 
-        profile_version = self.profile['models'][name]['version']
+        models = self.profile['models']
+        model = models[models.index(name)]
+
+        profile_version = model['version']
         profile_path = path + '/' + name + '/manifest.json'
         if os.path.isfile(profile_path):
             _p = open(profile_path, 'r')
             local_profile = json.loads(_p.read())
             _p.close()
 
-            if local_profile[name]['version'] == profile_version:
+            if local_profile['version'] == profile_version:
                 if self.is_debug:
                     print('Version match, skipping download')
                 return
         else:
-            p_to_write = self.profile['models'][name]
-            p_to_write = { name: p_to_write }
-
             _p = open(profile_path, 'w')
-            _p.write(json.dumps(p_to_write))
+            _p.write(json.dumps(model))
             _p.close()
 
         url = 'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/' + self.bucket + '/model-bin?object=trained/' + name + '/' + profile_version + '/model'
