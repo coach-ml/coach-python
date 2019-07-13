@@ -97,7 +97,14 @@ class Coach:
             pass
 
         models = self.profile['models']
-        model = models[models.index(name)]
+
+        model = ''
+        for _model in models:
+            if _model['name'] == name:
+                model = _model
+
+        #model = models[models.index(name)]
+        print(model)
 
         profile_version = model['version']
         profile_path = path + '/' + name + '/manifest.json'
@@ -115,7 +122,7 @@ class Coach:
             _p.write(json.dumps(model))
             _p.close()
 
-        url = 'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/' + self.bucket + '/model-bin?object=trained/' + name + '/' + profile_version + '/model'
+        url = 'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/' + self.bucket + '/model-bin?object=trained/' + name + '/' + str(profile_version) + '/model'
 
         m_file = 'frozen.pb'
         m_url = url + '/' + m_file
@@ -139,10 +146,7 @@ class Coach:
         manifest_path = path + '/manifest.json'
         m = open(manifest_path, 'r')
         manifest = json.loads(m.read())
-        key = list(manifest.keys())[0]
-        manifest = manifest[key]
-        m.close()
-
+        
         # Load lables
         labels = manifest['labels']
         base_module = manifest['module']
