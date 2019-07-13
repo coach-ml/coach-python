@@ -13,10 +13,13 @@ class CoachModel:
         self.graph = graph
         self.labels = labels
 
-        self.input_height = 224
-        self.input_width = 224
-        self.input_mean = 0
-        self.input_std = 255
+        mod_len = len(base_module)
+
+        input_size = int(base_module[mod_len-3:mod_len])
+        self.input_height = input_size
+        self.input_width = input_size
+        #self.input_mean = 0
+        #self.input_std = 299
 
         # handle expected module sizes
         if (base_module == ""):
@@ -28,7 +31,8 @@ class CoachModel:
 
         dims_expander = tf.expand_dims(float_caster, 0)
         resized = tf.image.resize_bilinear(dims_expander, [self.input_height, self.input_width])
-        normalized = tf.divide(tf.subtract(resized, [self.input_mean]), [self.input_std])
+        #normalized = tf.divide(tf.subtract(resized, [0]), [299])
+        normalized = resized
         sess = tf.Session()
         result = sess.run(normalized)
 
@@ -39,8 +43,8 @@ class CoachModel:
         return self.__read_tensor_from_bytes(tensor)        
 
     def predict(self, image):
-        output_name = "import/softmax_input/Softmax"
-        input_name = "import/lambda_input_input"
+        output_name = "import/output/Softmax"
+        input_name = "import/lambda_input"
 
         input_operation = self.graph.get_operation_by_name(input_name)
         output_operation = self.graph.get_operation_by_name(output_name)
