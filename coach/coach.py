@@ -43,8 +43,8 @@ class CoachModel:
         return self.__read_tensor_from_bytes(tensor)        
 
     def predict(self, image):
-        output_name = "import/output/Softmax"
-        input_name = "import/lambda_input"
+        input_name = "input"
+        output_name = "output"
 
         input_operation = self.graph.get_operation_by_name(input_name)
         output_operation = self.graph.get_operation_by_name(output_name)
@@ -156,3 +156,7 @@ class Coach:
         base_module = manifest['module']
 
         return CoachModel(graph, labels, base_module)
+
+    def get_model_remote(self, name, path="."):
+        cache_model(name, path)
+        return get_model(path)

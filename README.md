@@ -47,6 +47,9 @@ Downloads model from Coach service to disk. Specify the name of the model, and t
 `get_model(self, path) -> CoachModel`
 Loads model into memory. Specify the path of the cached models directory. Returns a `CoachModel`
 
+`get_model_remote(self, path) -> CoachModel`
+Downloads and loads model into memory. Specify the path of the cached models directory. Returns a `CoachModel`
+
 ### CoachModel
 `__init__(self, graph, labels, base_module)`  
 Initializes a new instance of `CoachModel`, accepts a loaded `tf.Graph()`, array of `labels`, and the `base_module` the graph was trained off of.
