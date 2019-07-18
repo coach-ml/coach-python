@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="coach",
-    version="0.0.1",
+    version="0.0.3",
     author="Loren Kuich",
     author_email="loren@lkuich.com",
     description="Python client for coach",
@@ -13,9 +13,13 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/lkuich/coach-python",
     packages=setuptools.find_packages(),
-    install_requires=['tensorflow==1.12', 'requests', 'numpy'],
+    install_requires=['requests', 'numpy'],
+    extra_require={
+        "tf": ['tensorflow==1.12'],
+        "tf_gpu": ['tensorflow-gpu==1.12']
+    },
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
