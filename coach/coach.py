@@ -88,7 +88,7 @@ class Coach:
         return response
 
     # Downloads model
-    def cache_model(self, name, path='.'):
+    def cache_model(self, name, path='.', version=0):
         if not self.__is_authenticated():
             print('You must login to cache a model')
             return
@@ -107,33 +107,31 @@ class Coach:
             if _model['name'] == name:
                 model = _model
 
-        #model = models[models.index(name)]
-        print(model)
+        if version <= 0:
+            version = model['version']
 
-        profile_version = model['version']
-        profile_path = path + '/' + name + '/manifest.json'
+        profile_path = os.path.join(path, name, 'manifest.json')
         if os.path.isfile(profile_path):
             _p = open(profile_path, 'r')
             local_profile = json.loads(_p.read())
             _p.close()
 
-            if local_profile['version'] == profile_version:
+            if local_profile['version'] == version:
                 if self.is_debug:
                     print('Version match, skipping download')
                 return
-        else:
-            _p = open(profile_path, 'w')
-            _p.write(json.dumps(model))
-            _p.close()
 
-        url = 'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/' + self.bucket + '/model-bin?object=trained/' + name + '/' + str(profile_version) + '/model'
+        _p = open(profile_path, 'w')
+        _p.write(json.dumps(model))
+        _p.close()
+
+        url = f'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/{self.bucket}'
 
         m_file = 'frozen.pb'
-        m_url = url + '/' + m_file
         # Write bin to path
-        m_response = requests.get(m_url, headers={"X-Api-Key": self.apiKey, "Accept": "", "Content-Type": "application/octet-stream"}).content
+        m_response = requests.get(url, params={"object": f"trained/{name}/{str(version)}/model/{m_file}", } headers={"X-Api-Key": self.apiKey, "Accept": "", "Content-Type": "application/octet-stream"}).content
 
-        model_path = path + '/' + name + '/' + m_file
+        model_path = os.path.join(path, name, m_file)
         model = open(model_path, 'wb')
         model.write(m_response)
         model.close()
@@ -141,13 +139,13 @@ class Coach:
     def get_model(self, path):
         graph = tf.Graph()
         graph_def = tf.GraphDef()
-        with open(path + '/frozen.pb', "rb") as f:
+        with open(os.path.join(path, 'frozen.pb'), "rb") as f:
             #text_format.Merge(f.read(), graph_def)
             graph_def.ParseFromString(f.read())
         with graph.as_default():
             tf.import_graph_def(graph_def)
 
-        manifest_path = path + '/manifest.json'
+        manifest_path = os.path.join(path, 'manifest.json')
         m = open(manifest_path, 'r')
         manifest = json.loads(m.read())
         
