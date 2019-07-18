@@ -88,17 +88,10 @@ class Coach:
         return response
 
     # Downloads model
-    def cache_model(self, name, path='.', version=0):
+    def cache_model(self, name, path='.', version=0, skip_match=False):
         if not self.__is_authenticated():
             print('You must login to cache a model')
             return
-
-        # Create dir to store model files
-        try:
-            # Create target Directory
-            os.mkdir(name)
-        except FileExistsError:
-            pass
 
         models = self.profile['models']
 
@@ -107,19 +100,27 @@ class Coach:
             if _model['name'] == name:
                 model = _model
 
+        # TODO: Better versioning with labels
         if version <= 0:
             version = model['version']
+        else:
+            model['version'] = version
 
-        profile_path = os.path.join(path, name, 'manifest.json')
+        model_dir = os.path.join(path, name)
+        profile_path = os.path.join(model_dir, 'manifest.json')
+        
         if os.path.isfile(profile_path):
             _p = open(profile_path, 'r')
             local_profile = json.loads(_p.read())
             _p.close()
 
-            if local_profile['version'] == version:
+            if local_profile['version'] == version and skip_match:
                 if self.is_debug:
                     print('Version match, skipping download')
                 return
+        
+        elif not os.path.isdir(model_dir):
+            os.mkdir(model_dir)
 
         _p = open(profile_path, 'w')
         _p.write(json.dumps(model))
@@ -129,9 +130,9 @@ class Coach:
 
         m_file = 'frozen.pb'
         # Write bin to path
-        m_response = requests.get(url, params={"object": f"trained/{name}/{str(version)}/model/{m_file}", } headers={"X-Api-Key": self.apiKey, "Accept": "", "Content-Type": "application/octet-stream"}).content
+        m_response = requests.get(url, params={"object": f"trained/{name}/{str(version)}/model/{m_file}", }, headers={"X-Api-Key": self.apiKey, "Accept": "", "Content-Type": "application/octet-stream"}).content
 
-        model_path = os.path.join(path, name, m_file)
+        model_path = os.path.join(model_dir, m_file)
         model = open(model_path, 'wb')
         model.write(m_response)
         model.close()
