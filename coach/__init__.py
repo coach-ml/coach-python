@@ -1,2 +1,2 @@
-from .coach import Coach, CoachModel
+from .coach import CoachClient, CoachModel
 name = "coach"

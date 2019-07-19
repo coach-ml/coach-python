@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
 import tensorflow as tf
-from tensorflow.keras.preprocessing import image
 import os
-import csv
 import numpy as np
 import requests
 import json
@@ -25,13 +23,13 @@ class CoachModel:
         if (base_module == ""):
             pass
 
-    def __read_tensor_from_bytes(self, imageBytes):
-        image_reader = tf.image.decode_image(imageBytes, channels=3)
+    def __read_tensor_from_bytes(self, image_bytes):
+        image_reader = tf.image.decode_image(image_bytes, channels=3)
         float_caster = tf.cast(image_reader, tf.float32)
 
         dims_expander = tf.expand_dims(float_caster, 0)
         resized = tf.image.resize_bilinear(dims_expander, [self.input_height, self.input_width])
-        #normalized = tf.divide(tf.subtract(resized, [0]), [299])
+        #normalized = tf.divide(tf.subtract(resized, [self.input_mean]), [self.input_std])
         normalized = resized
         sess = tf.Session()
         result = sess.run(normalized)
@@ -42,10 +40,7 @@ class CoachModel:
         tensor = tf.read_file(file_name, name="file_reader")
         return self.__read_tensor_from_bytes(tensor)        
 
-    def predict(self, image):
-        input_name = "input"
-        output_name = "output"
-
+    def predict(self, image, input_name="input", output_name="output"):
         input_operation = self.graph.get_operation_by_name(input_name)
         output_operation = self.graph.get_operation_by_name(output_name)
 
@@ -61,14 +56,14 @@ class CoachModel:
             })
         results = np.squeeze(results)
 
-        js = {};
+        js = {}
         top_k = results.argsort()[-5:][::-1]
         for i in top_k:
             js[self.labels[i]] = results[i]
 
         return js
 
-class Coach:
+class CoachClient:
     def __init__(self, is_debug=False):
         self.is_debug = is_debug
 
@@ -88,7 +83,7 @@ class Coach:
         return response
 
     # Downloads model
-    def cache_model(self, name, path='.', version=0, skip_match=False):
+    def cache_model(self, model_name, path='.', skip_match=True, model_type='frozen'):
         if not self.__is_authenticated():
             print('You must login to cache a model')
             return
@@ -97,16 +92,17 @@ class Coach:
 
         model = ''
         for _model in models:
-            if _model['name'] == name:
+            if _model['name'] == model_name:
                 model = _model
 
         # TODO: Better versioning with labels
+        version = 0
         if version <= 0:
             version = model['version']
         else:
             model['version'] = version
 
-        model_dir = os.path.join(path, name)
+        model_dir = os.path.join(path, model_name)
         profile_path = os.path.join(model_dir, 'manifest.json')
         
         if os.path.isfile(profile_path):
@@ -128,20 +124,32 @@ class Coach:
 
         url = f'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/{self.bucket}'
 
-        m_file = 'frozen.pb'
-        # Write bin to path
-        m_response = requests.get(url, params={"object": f"trained/{name}/{str(version)}/model/{m_file}", }, headers={"X-Api-Key": self.apiKey, "Accept": "", "Content-Type": "application/octet-stream"}).content
+        model_filename = None
+        if model_type == 'frozen':
+            model_filename = 'frozen.pb'
+        elif model_type == 'unity':
+            model_filename = 'unity.bytes'
+        elif model_type == 'mobile':
+            model_filename = 'mobile.tflite'
+        else:
+            raise ValueError(f'model_type {model_type} is invalid. Can be one of: frozen, unity, mobile')
 
-        model_path = os.path.join(model_dir, m_file)
+        # Write bin to path
+        try:
+            m_response = requests.get(url, params={"object": f"trained/{model_name}/{str(version)}/model/{model_filename}", }, headers={"X-Api-Key": self.apiKey, "Accept": "", "Content-Type": "application/octet-stream"}).content
+        except Exception:
+            raise ValueError(f'Failed to cache model {model_name}')
+
+        model_path = os.path.join(model_dir, model_filename)
         model = open(model_path, 'wb')
         model.write(m_response)
         model.close()
 
     def get_model(self, path):
+        model_type = 'frozen.pb'
         graph = tf.Graph()
         graph_def = tf.GraphDef()
-        with open(os.path.join(path, 'frozen.pb'), "rb") as f:
-            #text_format.Merge(f.read(), graph_def)
+        with open(os.path.join(path, model_type), "rb") as f:
             graph_def.ParseFromString(f.read())
         with graph.as_default():
             tf.import_graph_def(graph_def)
@@ -156,6 +164,6 @@ class Coach:
 
         return CoachModel(graph, labels, base_module)
 
-    def get_model_remote(self, name, path="."):
-        cache_model(name, path)
-        return get_model(path)
+    def get_model_remote(self, model_name, path="."):
+        self.cache_model(model_name, path)
+        return self.get_model(path)
