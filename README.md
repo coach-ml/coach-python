@@ -1,7 +1,6 @@
 # Coach Python SDK
 
-Coach is an end-to-end Image Recognition platform, we provide the tooling to do effective data collection, training, and on-device parsing of Image Recognition models.
-The Python 3.6 SDK interacts with the Coach web API in order to download and parse your trained Coach models.
+Coach is an end-to-end Image Recognition platform, we provide the tooling to do effective data collection, training, and on-device parsing of Image Recognition models. This SDK is Python 3.6 compatible, we're working on 3.7 compatibility in the future.
 
 See https://coach.lkuich.com for more information!
 
