@@ -41,6 +41,9 @@ class CoachModel:
         return self.__read_tensor_from_bytes(tensor)        
 
     def predict(self, image, input_name="input", output_name="output"):
+        if not os.path.isfile(image):
+            raise ValueError(f'Invalid image: {image}')
+
         input_operation = self.graph.get_operation_by_name(input_name)
         output_operation = self.graph.get_operation_by_name(output_name)
 
@@ -70,7 +73,11 @@ class CoachClient:
     def login(self, apiKey):
         self.apiKey = apiKey
         self.id = apiKey[0:5]
-        self.profile = self.__get_profile()
+        try:
+            self.profile = self.__get_profile()
+        except Exception:
+            raise ValueError("Failed to login, check your API key")
+        
         self.bucket = self.profile['bucket']
         return self
 
@@ -79,8 +86,9 @@ class CoachClient:
 
     def __get_profile(self):
         url = 'https://2hhn1oxz51.execute-api.us-east-1.amazonaws.com/prod/' + self.id
-        response = requests.get(url, headers={"X-Api-Key": self.apiKey}).json()
-        return response
+        response = requests.get(url, headers={"X-Api-Key": self.apiKey})
+        response.raise_for_status()        
+        return response.json()
 
     # Downloads model
     def cache_model(self, model_name, path='.', skip_match=True, model_type='frozen'):
@@ -136,16 +144,22 @@ class CoachClient:
 
         # Write bin to path
         try:
-            m_response = requests.get(url, params={"object": f"trained/{model_name}/{str(version)}/model/{model_filename}", }, headers={"X-Api-Key": self.apiKey, "Accept": "", "Content-Type": "application/octet-stream"}).content
+            m_response = requests.get(url, params={"object": f"trained/{model_name}/{str(version)}/model/{model_filename}", }, headers={"X-Api-Key": self.apiKey, "Accept": "", "Content-Type": "application/octet-stream"})
+            m_response.raise_for_status()
+            
+            content = m_response.content
         except Exception:
-            raise ValueError(f'Failed to cache model {model_name}')
+            raise ValueError(f'Failed to cache model: {model_name}')
 
         model_path = os.path.join(model_dir, model_filename)
         model = open(model_path, 'wb')
-        model.write(m_response)
+        model.write(content)
         model.close()
 
     def get_model(self, path):
+        if not os.path.isdir(path):
+            raise ValueError(f'Invalid model directory: {path}')
+
         model_type = 'frozen.pb'
         graph = tf.Graph()
         graph_def = tf.GraphDef()
