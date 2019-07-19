@@ -34,7 +34,7 @@ result = coach.get_model('flowers').predict('rose.jpg')
 
 ## API Breakdown
 
-### Coach
+### CoachClient
 `__init__(is_debug=False)`  
 Optional `is_debug`, if `True`, additional logs will be displayed
 
