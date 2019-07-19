@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="coach-ml",
-    version="0.0.3",
+    version="0.1",
     author="Loren Kuich",
     author_email="loren@lkuich.com",
     description="Python client for coach",

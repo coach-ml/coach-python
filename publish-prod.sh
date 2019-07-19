@@ -1,4 +1,0 @@
-#!/bin/bash
-rm -r build/ coach.egg-info/ dist/ lkuich.egg-info/
-python3 setup.py sdist bdist_wheel
-python3 -m twine upload dist/*
