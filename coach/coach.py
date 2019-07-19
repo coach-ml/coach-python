@@ -87,14 +87,15 @@ class CoachClient:
     def __get_profile(self):
         url = 'https://2hhn1oxz51.execute-api.us-east-1.amazonaws.com/prod/' + self.id
         response = requests.get(url, headers={"X-Api-Key": self.apiKey})
-        response.raise_for_status()        
+        response.raise_for_status()     
         return response.json()
 
     # Downloads model
     def cache_model(self, model_name, path='.', skip_match=True, model_type='frozen'):
         if not self.__is_authenticated():
-            print('You must login to cache a model')
-            return
+            raise ValueError('You must login to cache a model')
+        if not os.path.isdir(path):
+            raise ValueError(f'{path} is not a valid directory')
 
         models = self.profile['models']
 
