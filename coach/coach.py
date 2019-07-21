@@ -44,6 +44,8 @@ class CoachModel:
         if not os.path.isfile(image):
             raise ValueError(f'Invalid image: {image}')
 
+
+
         input_operation = self.graph.get_operation_by_name(input_name)
         output_operation = self.graph.get_operation_by_name(output_name)
 
@@ -181,4 +183,4 @@ class CoachClient:
 
     def get_model_remote(self, model_name, path="."):
         self.cache_model(model_name, path)
-        return self.get_model(path)
+        return self.get_model(os.path.join(model_name, path))
