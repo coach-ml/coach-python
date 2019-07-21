@@ -169,7 +169,7 @@ class CoachClient:
         with open(os.path.join(path, model_type), "rb") as f:
             graph_def.ParseFromString(f.read())
         with graph.as_default():
-            tf.import_graph_def(graph_def)
+            tf.import_graph_def(graph_def, name='')
 
         manifest_path = os.path.join(path, 'manifest.json')
         m = open(manifest_path, 'r')
