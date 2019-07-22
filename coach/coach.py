@@ -137,7 +137,7 @@ class CoachClient:
         _p.write(json.dumps(model))
         _p.close()
 
-        url = f'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/{self.bucket}'
+        url = f'https://la41byvnkj.execute-api.us-east-1.amazonaws.com/prod/{self.bucket}/model-bin'
 
         model_filename = None
         if model_type == 'frozen':
