@@ -6,8 +6,14 @@ import numpy as np
 import requests
 import json
 
+COACH_VERSION = 1.0
+
 class CoachModel:
-    def __init__(self, graph, labels, base_module):
+
+    def __init__(self, graph, labels, base_module, coach_version):
+        if COACH_VERSION != coach_version:
+            raise ValueError(f"Coach model v{coach_version} is incompatible with SDK version v{COACH_VERSION}")
+
         self.graph = graph
         self.labels = labels
 
@@ -43,8 +49,6 @@ class CoachModel:
     def predict(self, image, input_name="input", output_name="output"):
         if not os.path.isfile(image):
             raise ValueError(f'Invalid image: {image}')
-
-
 
         input_operation = self.graph.get_operation_by_name(input_name)
         output_operation = self.graph.get_operation_by_name(output_name)
@@ -178,8 +182,9 @@ class CoachClient:
         # Load lables
         labels = manifest['labels']
         base_module = manifest['module']
+        coach_version = manifest['coachVersion']
 
-        return CoachModel(graph, labels, base_module)
+        return CoachModel(graph, labels, base_module, coach_version)
 
     def get_model_remote(self, model_name, path="."):
         self.cache_model(model_name, path)
