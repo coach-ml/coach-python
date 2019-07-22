@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="coach-ml",
-    version="0.3",
+    version="0.03",
     author="Loren Kuich",
     author_email="loren@lkuich.com",
     description="Python client for coach",
@@ -15,6 +15,9 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=['requests', 'numpy==1.16.4', 'tensorflow==1.12'],
     classifiers=[
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
