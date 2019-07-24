@@ -22,8 +22,8 @@ class CoachModel:
         input_size = int(base_module[mod_len-3:mod_len])
         self.input_height = input_size
         self.input_width = input_size
-        #self.input_mean = 0
-        #self.input_std = 299
+        self.input_mean = 0
+        self.input_std = 255
 
         # handle expected module sizes
         if (base_module == ""):
@@ -35,8 +35,7 @@ class CoachModel:
 
         dims_expander = tf.expand_dims(float_caster, 0)
         resized = tf.image.resize_bilinear(dims_expander, [self.input_height, self.input_width])
-        #normalized = tf.divide(tf.subtract(resized, [self.input_mean]), [self.input_std])
-        normalized = resized
+        normalized = tf.divide(tf.subtract(resized, [self.input_mean]), [self.input_std])
         sess = tf.Session()
         result = sess.run(normalized)
 
