@@ -44,7 +44,7 @@ class TestClient(unittest.TestCase):
     def test_get_model_remote(self):
         self.login()
 
-        model = self.get_model_remote("flowers")
+        model = self.client.get_model_remote("flowers")
         self.assertEqual(model.input_height, 224)
         self.assertEqual(model.input_width, 224)
         self.assertIsNotNone(model.graph)
