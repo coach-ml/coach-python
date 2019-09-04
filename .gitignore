@@ -1,1 +1,8 @@
 *.pyc
+tests/env.py
+.vscode/
+build/
+coach_ml.egg-info
+dist/
+lkuich.egg-info/
+venv/

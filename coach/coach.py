@@ -177,6 +177,7 @@ class CoachClient:
         manifest_path = os.path.join(path, 'manifest.json')
         m = open(manifest_path, 'r')
         manifest = json.loads(m.read())
+        m.close()
         
         # Load lables
         labels = manifest['labels']
