@@ -27,7 +27,7 @@ class TestClient(unittest.TestCase):
         
         # Check MD5
         frozen_graph = self.md5("flowers/frozen.pb")
-        self.assertEqual(frozen_graph, "eafe442dd924aea05d1db6640927b71d")
+        self.assertEqual(frozen_graph, "792b71999dcdc0f90873d3e1ab4258fe")
 
     def test_get_model(self):
         self.login()
@@ -49,6 +49,17 @@ class TestClient(unittest.TestCase):
         self.assertEqual(model.input_width, 224)
         self.assertIsNotNone(model.graph)
         self.assertEqual(model.labels, ['daisy', 'dandelion', 'roses', 'sunflowers', 'tulips'])
+
+    def test_parse_model(self):
+        self.login()
+
+        model = self.client.get_model_remote("flowers")
+        self.assertEqual(model.input_height, 224)
+        self.assertEqual(model.input_width, 224)
+        self.assertIsNotNone(model.graph)
+        self.assertEqual(model.labels, ['daisy', 'dandelion', 'roses', 'sunflowers', 'tulips'])
+
+        print(model.predict("rose.jpg"))
 
     def md5(self, fname):
         hash_md5 = hashlib.md5()
