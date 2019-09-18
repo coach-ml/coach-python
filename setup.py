@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/coach-ml/coach-python",
     packages=setuptools.find_packages(),
-    install_requires=['requests', 'tensorflow==1.14'],
+    install_requires=['requests', 'numpy==1.16.4' 'tensorflow==1.14'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.4",
