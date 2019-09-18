@@ -6,7 +6,7 @@ import numpy as np
 import requests
 import json
 
-COACH_VERSION = 1.0
+COACH_VERSION = 2.0
 
 class CoachModel:
 
@@ -24,10 +24,6 @@ class CoachModel:
         self.input_width = input_size
         self.input_mean = 0
         self.input_std = 255
-
-        # handle expected module sizes
-        if (base_module == ""):
-            pass
 
     def __read_tensor_from_bytes(self, image_bytes):
         image_reader = tf.image.decode_image(image_bytes, channels=3)

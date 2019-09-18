@@ -1,0 +1,9 @@
+version: '2'
+services:
+  app:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      PROD: "False"
+    working_dir: /app

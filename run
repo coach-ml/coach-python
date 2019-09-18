@@ -1,0 +1,8 @@
+#!/bin/bash
+
+DOCKER_COMPOSE_LOCATION=docker-compose.yml
+PROJECT_NAME=coach-trainer
+
+echo 'Entering '"$PROJECT_NAME"' shell'
+docker-compose -p $PROJECT_NAME -f $DOCKER_COMPOSE_LOCATION run app /bin/bash 
+exit 0
