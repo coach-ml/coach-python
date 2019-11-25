@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import tensorflow as tf
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+import tensorflow as tf
 import numpy as np
 import requests
 import json
@@ -30,15 +31,15 @@ class CoachModel:
         float_caster = tf.cast(image_reader, tf.float32)
 
         dims_expander = tf.expand_dims(float_caster, 0)
-        resized = tf.image.resize_bilinear(dims_expander, [self.input_height, self.input_width])
+        resized = tf.compat.v1.image.resize_bilinear(dims_expander, [self.input_height, self.input_width])
         normalized = tf.divide(tf.subtract(resized, [self.input_mean]), [self.input_std])
-        sess = tf.Session()
+        sess = tf.compat.v1.Session()
         result = sess.run(normalized)
 
         return result
 
     def __read_tensor_from_image_file(self, file_name):
-        tensor = tf.read_file(file_name, name="file_reader")
+        tensor = tf.io.read_file(file_name, name="file_reader")
         return self.__read_tensor_from_bytes(tensor)        
 
     def predict(self, image, input_name="input", output_name="output"):
@@ -53,8 +54,8 @@ class CoachModel:
         else:
             t = self.__read_tensor_from_bytes(image)
         
-        with tf.Session(graph=self.graph) as sess:
-            sess.run(tf.global_variables_initializer())
+        with tf.compat.v1.Session(graph=self.graph) as sess:
+            sess.run(tf.compat.v1.global_variables_initializer())
             results = sess.run(output_operation.outputs[0], {
                 input_operation.outputs[0]: t
             })
@@ -164,7 +165,7 @@ class CoachClient:
 
         model_type = 'frozen.pb'
         graph = tf.Graph()
-        graph_def = tf.GraphDef()
+        graph_def = tf.compat.v1.GraphDef()
         with open(os.path.join(path, model_type), "rb") as f:
             graph_def.ParseFromString(f.read())
         with graph.as_default():
