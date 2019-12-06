@@ -77,8 +77,8 @@ class CoachClient:
         self.id = apiKey[0:5]
         try:
             self.profile = self.__get_profile()
-        except Exception:
-            raise ValueError("Failed to login, check your API key")
+        except Exception as e:
+            raise ValueError(f"Failed to get profile:\n{e}")
         
         self.bucket = self.profile['bucket']
         return self
@@ -89,7 +89,7 @@ class CoachClient:
     def __get_profile(self):
         url = 'https://2hhn1oxz51.execute-api.us-east-1.amazonaws.com/prod/' + self.id
         response = requests.get(url, headers={"X-Api-Key": self.apiKey})
-        response.raise_for_status()     
+        response.raise_for_status()
         return response.json()
 
     # Downloads model
@@ -101,10 +101,13 @@ class CoachClient:
 
         models = self.profile['models']
 
-        model = ''
+        model = None
         for _model in models:
             if _model['name'] == model_name:
                 model = _model
+
+        if model is None:
+            raise ValueError(f'{model_name} is an invalid model')
 
         # TODO: Better versioning with labels
         version = 0
