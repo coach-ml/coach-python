@@ -15,9 +15,6 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=['requests', 'numpy==1.16.4', 'tensorflow==1.14'],
     classifiers=[
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "License :: OSI Approved :: MIT License",
