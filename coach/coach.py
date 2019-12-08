@@ -87,7 +87,7 @@ class CoachClient:
         return self.apiKey != None and self.id != None and self.bucket != None
 
     def __get_profile(self):
-        url = 'https://2hhn1oxz51.execute-api.us-east-1.amazonaws.com/prod/' + self.id
+        url = 'https://x27xyu10z1.execute-api.us-east-1.amazonaws.com/latest/profile?id=' + self.id
         response = requests.get(url, headers={"X-Api-Key": self.apiKey})
         response.raise_for_status()
         return response.json()
