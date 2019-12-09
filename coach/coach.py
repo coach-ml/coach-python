@@ -9,8 +9,13 @@ import json
 
 COACH_VERSION = 2.0
 
-class CoachModel:
+def get_profile(apiKey, id):
+    url = 'https://x27xyu10z1.execute-api.us-east-1.amazonaws.com/latest/profile?id=' + id
+    response = requests.get(url, headers={"X-Api-Key": apiKey})
+    response.raise_for_status()
+    return response.json()
 
+class CoachModel:
     def __init__(self, graph, labels, base_module, coach_version):
         if COACH_VERSION != coach_version:
             raise ValueError(f"Coach model v{coach_version} is incompatible with SDK version v{COACH_VERSION}")
@@ -87,10 +92,7 @@ class CoachClient:
         return self.apiKey != None and self.id != None and self.bucket != None
 
     def __get_profile(self):
-        url = 'https://x27xyu10z1.execute-api.us-east-1.amazonaws.com/latest/profile?id=' + self.id
-        response = requests.get(url, headers={"X-Api-Key": self.apiKey})
-        response.raise_for_status()
-        return response.json()
+        return get_profile(self.apiKey, self.id)
 
     # Downloads model
     def cache_model(self, model_name, path='.', skip_match=True, model_type='frozen'):
