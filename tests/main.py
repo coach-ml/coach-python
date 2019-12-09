@@ -39,7 +39,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(model.input_height, 224)
         self.assertEqual(model.input_width, 224)
         self.assertIsNotNone(model.graph)
-        self.assertEqual(model.labels, ['daisy', 'dandelion', 'roses', 'sunflowers', 'tulips'])
+        self.assertEqual(model.labels, ['daisy', 'dandelion', 'rose', 'sunflowers', 'tulips'])
 
     def test_get_model_remote(self):
         self.login()
@@ -48,7 +48,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(model.input_height, 224)
         self.assertEqual(model.input_width, 224)
         self.assertIsNotNone(model.graph)
-        self.assertEqual(model.labels, ['daisy', 'dandelion', 'roses', 'sunflowers', 'tulips'])
+        self.assertEqual(model.labels, ['daisy', 'dandelion', 'rose', 'sunflowers', 'tulips'])
 
     def test_parse_model(self):
         self.login()
@@ -57,7 +57,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(model.input_height, 224)
         self.assertEqual(model.input_width, 224)
         self.assertIsNotNone(model.graph)
-        self.assertEqual(model.labels, ['daisy', 'dandelion', 'roses', 'sunflowers', 'tulips'])
+        self.assertEqual(model.labels, ['daisy', 'dandelion', 'rose', 'sunflowers', 'tulips'])
 
         print(model.predict("rose.jpg"))
 
