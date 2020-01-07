@@ -15,6 +15,20 @@ def get_profile(apiKey, id):
     response.raise_for_status()
     return response.json()
 
+def validate_file(path):
+    try:
+        with tf.io.gfile.GFile(image, 'rb') as fid:
+            image_data = fid.read()
+
+        image_tensor = tf.image.decode_jpg(
+            image_data,
+            channels=3,
+            name=None
+        )
+        return True
+    except:
+        return False
+
 class CoachModel:
     def __init__(self, graph, labels, base_module, coach_version):
         if COACH_VERSION != coach_version:
