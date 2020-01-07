@@ -18,7 +18,7 @@ def get_profile(apiKey, id):
 
 def validate_file(path):
     try:
-        imread(image)
+        imread(path)
         return True
     except:
         return False
