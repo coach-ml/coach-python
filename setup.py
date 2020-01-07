@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="coach-ml",
-    version="0.20",
+    version="0.21",
     author="Loren Kuich",
     author_email="loren@lkuich.com",
     description="Python client for coach",
@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/coach-ml/coach-python",
     packages=setuptools.find_packages(),
-    install_requires=['requests', 'numpy==1.16.4', 'tensorflow==1.14', 'imageio==0.7.1'],
+    install_requires=['requests', 'numpy==1.16.4', 'tensorflow==1.14', 'imageio==2.6.1'],
     classifiers=[
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
