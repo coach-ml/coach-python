@@ -6,6 +6,7 @@ import tensorflow as tf
 import numpy as np
 import requests
 import json
+from imageio import imread
 
 COACH_VERSION = 2.0
 
@@ -17,14 +18,7 @@ def get_profile(apiKey, id):
 
 def validate_file(path):
     try:
-        with tf.io.gfile.GFile(image, 'rb') as fid:
-            image_data = fid.read()
-
-        image_tensor = tf.image.decode_jpg(
-            image_data,
-            channels=3,
-            name=None
-        )
+        imread(image)
         return True
     except:
         return False
